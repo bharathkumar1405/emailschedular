@@ -38,24 +38,21 @@ public class EmployeeService {
         List<SheetData> sheetDataList = excelService.getDataFromExcel();
         log.info("getAllEmployees  Size {}", sheetDataList.get(0).getRows().size());
         LocalDate today= LocalDate.now();
-        SheetData months = employeeHelper.filterandAddThisMonthBirthdaydata(sheetDataList, today.getMonth());
-        if(today.getDayOfMonth()>25){
-            SheetData nextMonth = employeeHelper.filterandAddThisMonthBirthdaydata(sheetDataList,
-                    today.getMonth().plus(1));
-            if(nextMonth!=null) sheetDataList.add(2,nextMonth);
-        }
-        SheetData todays = employeeHelper.filterOndateAndAddBirthdaydata(sheetDataList,today);
-        log.info("today Email  Size {}", todays.getRows().size());
-        if (todays != null) sheetDataList.add(0, todays);
-        if(months!=null) sheetDataList.add(1,months);
+        SheetData todaysData = employeeHelper.filterOndateAndAddBirthdaydata(sheetDataList,today);
+        log.info("today Email  Size {}", todaysData.getRows().size());
+        SheetData nextTwentyDays = employeeHelper.filterDateBetweenAndAddBirthdaydata(sheetDataList,today,today.plusDays(21));
+        SheetData thisMonth = employeeHelper.filterandAddThisMonthBirthdaydata(sheetDataList, today.getMonth());
 
+        if (todaysData != null) sheetDataList.add(0, todaysData);
+        if(nextTwentyDays!=null) sheetDataList.add(1,nextTwentyDays);
+        if(thisMonth!=null) sheetDataList.add(2,thisMonth);
         return sheetDataList;
     }
 
     public List<SheetData> sendBirthdayEmail() {
         List<SheetData> sheetDataList = excelService.getDataFromExcel();
         SheetData todaysSheet = employeeHelper.filterOndateAndAddBirthdaydata(sheetDataList,LocalDate.now());
-        if(todaysSheet != null){
+        if(todaysSheet != null && !todaysSheet.getRows().isEmpty()){
             emailService.sendBirthdayEmail(todaysSheet.getRows());
             excelService.writeStatusTosheet(todaysSheet);
             todaysSheet.setSheetName("TodaysentEmail");

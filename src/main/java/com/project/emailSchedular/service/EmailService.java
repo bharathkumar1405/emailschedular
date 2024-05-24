@@ -20,10 +20,10 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.List;
 
@@ -38,10 +38,6 @@ public class EmailService {
     String fromEmail;
     @Value("${spring.mail.images.path}")
     String imagePath;
-
-    @Value("${spring.mail.img.extension}")
-    String emailImgExt;
-
     @Value("${spring.mail.img.default}")
     String defaultImg;
 
@@ -70,10 +66,9 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
                     StandardCharsets.UTF_8.name());
             // add attachment
-
-            String html = buildHtmlFromTemplate(model);
+            String emailBody = getEmailBodyContent(model,helper);
             helper.setTo((String) model.getCell().get(fields.getEmail().toUpperCase()));
-            helper.setText(html, true);
+            helper.setText(emailBody, true);
             helper.setSubject((String) model.getCell().get(fields.getSubject().toUpperCase()));
             if(StringUtils.isBlank(fields.getFromName())) {
                 helper.setFrom(fromEmail);
@@ -82,9 +77,9 @@ public class EmailService {
             }
 
             sender.send(message);
-            response.setMessage("Mail sent on "+ LocalDateTime.now());
+            response.setMessage("Mail sent on "+ LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             response.setStatus(Boolean.TRUE);
-        } catch (MessagingException |TemplateException | IOException e) {
+        } catch (MessagingException | IOException | TemplateException e) {
             response.setMessage("Mail Sending failure : "+e.getMessage());
             response.setStatus(Boolean.FALSE);
             log.error("Error occurred sending email for {}",model.getCell(), e);
@@ -92,30 +87,61 @@ public class EmailService {
         return response;
     }
 
+    private String getEmailBodyContent(SheetData.Rows model, MimeMessageHelper helper) throws TemplateException, IOException, MessagingException {
+        String template = (String) model.getCell().get(fields.getTemplate().toUpperCase());
+        String htmlContent = "";
+        checkImagePresent(model);
+        if(StringUtils.isNotBlank(template)){
+            htmlContent = buildHtmlFromTemplate(model);
+        }else {
+            String imageContent = (String) model.getCell().get("IMAGE");
+            if (StringUtils.isNotBlank(imageContent)) {
+                htmlContent = "<html><body><img src='"+imageContent+"'></body></html>";
+            } else {
+                String textContent = (String) model.getCell().get("CONTENT");
+                if (StringUtils.isNotBlank(textContent)) {
+                    htmlContent = "<html><body>"+textContent+"</body></html>";
+                } else {
+                    htmlContent = "<html><body>No content available.</body></html>";
+                }
+            }
+        }
+        return htmlContent;
+    }
 
 
     public String buildHtmlFromTemplate(SheetData.Rows model) throws TemplateException, IOException {
         model.getCell().put("IMAGE", "");
-        //deafult image
-        File defaultFile = new File(imagePath+ defaultImg+fields.getImageExtension());
-        if(defaultFile.exists()){
-            byte[] fileContent = FileUtils.readFileToByteArray(defaultFile);
-            String encodedString = Base64.getEncoder().encodeToString(fileContent);
-            model.getCell().put("IMAGE", emailImgExt+encodedString);
-        }
-
-        //Id based image
-        File file = new File(imagePath+ model.getCell().get("ID")+fields.getImageExtension());
-
-        if(file.exists()) {
-            byte[] fileContent = FileUtils.readFileToByteArray(file);
-            String encodedString = Base64.getEncoder().encodeToString(fileContent);
-            model.getCell().put("IMAGE", emailImgExt+encodedString);
-        }
-
         Template freemarkerTemplate = freemarkerConfigurer.getConfiguration()
                 .getTemplate((String) model.getCell().get(fields.getTemplate().toUpperCase()));
         String htmlBody = FreeMarkerTemplateUtils.processTemplateIntoString(freemarkerTemplate, model.getCell());
         return htmlBody;
+    }
+
+    private boolean checkImagePresent(SheetData.Rows model) throws IOException {
+        String baseFilePath = imagePath + model.getCell().get("ID");
+        String defaultFilePath = imagePath+ defaultImg;
+        String[] extensions = fields.getImageExtension().split(",");
+
+        // Check for specific image
+        if (processImageFiles(baseFilePath, extensions, model)) {
+            return true;
+        }
+
+        // Check for default image
+        return processImageFiles(defaultFilePath, extensions, model);
+    }
+
+    private boolean processImageFiles(String filePath, String[] extensions, SheetData.Rows model) throws IOException {
+        for (String extension : extensions) {
+            File file = new File(filePath +"."+ extension.trim());
+            if (file.exists()) {
+                byte[] fileContent = FileUtils.readFileToByteArray(file);
+                String encodedString = Base64.getEncoder().encodeToString(fileContent);
+                model.getCell().put("IMAGE", "data:image/"+extension.trim()+";base64," + encodedString);
+                return true;  // Image found and processed
+            }
+        }
+        return false;  // No image found
     }
 }

@@ -43,11 +43,6 @@ public class EmployeeHelper {
                 String date = (String) d.getCell().get(fields.getDate().toUpperCase());
                 LocalDate date1 = LocalDate.parse(date, DateTimeFormatter.ofPattern(datePattern));
                 return date1.getMonth().equals(month);
-            }).map(d -> {
-                SheetData.Rows obj = d;
-                File file = new File(imagePath+ d.getCell().get("ID")+fields.getImageExtension());
-                obj.setImagePreset((file.exists())?"":"color" );
-                return obj;
             }).toList();
             sheetData.setSheetName(month.toString());
             sheetData.setRows(thisMonthsList);
@@ -64,7 +59,6 @@ public class EmployeeHelper {
 
         if(empdataOptional.isPresent()){
             SheetData sheetData = new SheetData();
-            LocalDateTime dt = LocalDateTime.now();
             log.info("Filtering on Date Data {}", filterOndate);
             List<SheetData.Rows> thisMonthsList = empdataOptional.get().getRows().stream().filter(d -> {
                 String date = (String) d.getCell().get(fields.getDate().toUpperCase());
@@ -77,6 +71,45 @@ public class EmployeeHelper {
             return sheetData;
         }
         return null;
+    }
+
+    public SheetData filterDateBetweenAndAddBirthdaydata(List<SheetData> sheetDataList,LocalDate startDate,LocalDate endDate) {
+        Optional<SheetData> empdataOptional = sheetDataList.stream()
+                .filter(d -> d.getSheetName().equalsIgnoreCase(fields.getEmpSheetName()))
+                .findFirst();
+
+        if(empdataOptional.isPresent()){
+            SheetData sheetData = new SheetData();
+            log.info("Filtering Date Data  between {} and {}", startDate,endDate);
+            List<SheetData.Rows> thisMonthsList = empdataOptional.get().getRows().stream().filter(d -> {
+                String date = (String) d.getCell().get(fields.getDate().toUpperCase());
+                LocalDate date1 = LocalDate.parse(date, DateTimeFormatter.ofPattern(datePattern));
+                return date1.isAfter(startDate) && date1.isBefore(endDate);
+            }).map(d -> {
+                SheetData.Rows obj = d;
+                boolean fileExist = checkImagePresent(d);
+                obj.setImagePreset((fileExist)?"":"color" );
+                return obj;
+            }).toList();
+            sheetData.setSheetName("Next 20 Days");
+            sheetData.setRows(thisMonthsList);
+            sheetData.setHeaders(empdataOptional.get().getHeaders());
+            return sheetData;
+        }
+        return null;
+    }
+
+    private boolean checkImagePresent(SheetData.Rows d) {
+        String baseFilePath = imagePath + d.getCell().get("ID");
+        String[] extensions = fields.getImageExtension().split(",");
+
+        for (String extension : extensions) {
+            File file = new File(baseFilePath + extension.trim());
+            if (file.exists()) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

@@ -1,4 +1,3 @@
-
     function openTab(index) {
         // Hide all tab panes
         $('.tab-pane').removeClass('active show');
@@ -18,7 +17,7 @@
       success: function(result){
       $.parseHTML(result)
         //$(".container .my-2").html(result);
-         $("#confirmText").html("Emails Sent Success");
+        $("#confirmText").html("Emails Sent Success");
         $("#confirmModal").modal();
         $(".overlay").fadeOut(300);
       },

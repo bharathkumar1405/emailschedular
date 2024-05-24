@@ -87,13 +87,12 @@ public class ExcelService {
         try (FileInputStream fileInputStream = new FileInputStream(excelFilePath)) {
             Workbook workbook = WorkbookFactory.create(fileInputStream);
             Sheet sheet = CommonUtil.getSheet(workbook,fields.getEmpSheetName());
-            List<String> headers = readHeaders(sheet);
+            List<String> headers = readHeaders(sheet).stream().map(String::toUpperCase).toList();
             if(sheet !=null) {
                 DataFormatter dataFormatter = new DataFormatter();
-                int columnIndex = headers.indexOf(fields.getStatus());
-
+                int columnIndex = headers.indexOf(fields.getStatus().toUpperCase());
                 for (Row row : sheet) {
-                    String key = dataFormatter.formatCellValue(row.getCell(headers.indexOf(fields.getEmpId())));
+                    String key = dataFormatter.formatCellValue(row.getCell(headers.indexOf(fields.getEmpId().toUpperCase())));
                     for (SheetData.Rows updatedrows : sheetData.getRows()) {
                         if (updatedrows.getCell().get("ID").equals(key) && updatedrows.getMailResponse() != null) {
                             String newValue = String.valueOf(updatedrows.getMailResponse().getMessage());
