@@ -28,4 +28,5 @@ replay_pid*
 **/target/**
 target/
 
-target/classes/templates/list-employees.html
+email/jdk-17/
+jdk-17/

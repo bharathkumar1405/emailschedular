@@ -16,11 +16,15 @@ if not exist "%APP_JAR%" (
     pause
     exit /b 1
 )
+
+
+rem Run the emailSchedular.jar file using Java
+start "" "%JDK_PATH%\bin\java.exe" -jar "%APP_JAR%"
+
+rem Wait for 10 seconds (you can adjust this value as needed)
+timeout /t 10 /nobreak
+
 rem Open Google Chrome
 start chrome http://localhost
 
-rem Run the emailSchedular.jar file using Java
-"%JDK_PATH%\bin\java.exe" -jar "%APP_JAR%"
-
-
-pause
+rem pause

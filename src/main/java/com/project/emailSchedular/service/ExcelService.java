@@ -27,6 +27,8 @@ public class ExcelService {
 
     @Value("${excel.file-path}") String excelFilePath;
 
+    @Value("${excel.secure-sheet}") String secureSheet;
+
     @Autowired
     EmailFields fields;
 
@@ -40,11 +42,40 @@ public class ExcelService {
             Workbook workbook = WorkbookFactory.create(fileInputStream);
 
             for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
-                Sheet sheet = workbook.getSheetAt(i);
-                List<String> headers = readHeaders(sheet);
-                List<SheetData.Rows> data = readData(sheet,headers);
 
-                sheetDataList.add(new SheetData(sheet.getSheetName(), headers, data));
+                Sheet sheet = workbook.getSheetAt(i);
+                if(!sheet.getSheetName().equals(secureSheet)) {
+                    List<String> headers = readHeaders(sheet);
+                    List<SheetData.Rows> data = readData(sheet, headers);
+
+                    sheetDataList.add(new SheetData(sheet.getSheetName(), headers, data));
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace(); // Handle the exception appropriately
+            log.error("Failed reading Excel",e);
+        }
+
+        return sheetDataList;
+    }
+
+    @Cacheable
+    public List<SheetData> getSecureDataFromExcel()
+    {
+        List<SheetData> sheetDataList = new ArrayList<>();
+
+        try (FileInputStream fileInputStream = new FileInputStream(excelFilePath)) {
+            Workbook workbook = WorkbookFactory.create(fileInputStream);
+
+            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                Sheet sheet = workbook.getSheetAt(i);
+                if(sheet.getSheetName().equals(secureSheet)) {
+                    List<String> headers = readHeaders(sheet);
+                    List<SheetData.Rows> data = readData(sheet, headers);
+
+                    sheetDataList.add(new SheetData(sheet.getSheetName(), headers, data));
+                }
             }
 
         } catch (IOException e) {

@@ -13,16 +13,17 @@
       url: "/sendEmail",
       beforeSend:function() {
          $(".overlay").fadeIn(300);
+         //alert("please close excel file");
       },
       success: function(result){
       $.parseHTML(result)
         //$(".container .my-2").html(result);
-        $("#confirmText").html("Emails Sent Success");
+        $("#confirmText").html("Please refresh browser to check status");
         $("#confirmModal").modal();
         $(".overlay").fadeOut(300);
       },
       failure:function(e){
-      console.log(e);
+      alert(e);
       },
       complete: function (data) {
        $(".overlay").fadeOut(300);

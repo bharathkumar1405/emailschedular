@@ -67,7 +67,22 @@ public class EmailService {
                     StandardCharsets.UTF_8.name());
             // add attachment
             String emailBody = getEmailBodyContent(model,helper);
-            helper.setTo((String) model.getCell().get(fields.getEmail().toUpperCase()));
+            String to=(String) model.getCell().get(fields.getEmail().toUpperCase());
+            if(StringUtils.isNotBlank(to)) {
+                String[] toArr = to.split(",");
+                helper.setTo(toArr);
+            }
+            String cc=(String) model.getCell().get(fields.getCc().toUpperCase());
+            if(StringUtils.isNotBlank(cc)) {
+                String[] ccArr = cc.split(",");
+                helper.setCc(ccArr);
+            }
+            String bcc=(String) model.getCell().get(fields.getBcc().toUpperCase());
+            if(StringUtils.isNotBlank(bcc)) {
+                String[] bccArr = bcc.split(",");
+                helper.setCc(bccArr);
+            }
+
             helper.setText(emailBody, true);
             helper.setSubject((String) model.getCell().get(fields.getSubject().toUpperCase()));
             if(StringUtils.isBlank(fields.getFromName())) {
@@ -82,7 +97,13 @@ public class EmailService {
         } catch (MessagingException | IOException | TemplateException e) {
             response.setMessage("Mail Sending failure : "+e.getMessage());
             response.setStatus(Boolean.FALSE);
+            model.getCell().put("IMAGE","");
             log.error("Error occurred sending email for {}",model.getCell(), e);
+        }catch (Exception e) {
+            response.setMessage("Mail Sending failure : "+e.getMessage());
+            response.setStatus(Boolean.FALSE);
+            model.getCell().put("IMAGE","");
+            log.error("Error occurred Exception full sending email for {}",model.getCell(), e);
         }
         return response;
     }
