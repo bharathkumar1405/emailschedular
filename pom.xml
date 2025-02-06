@@ -111,6 +111,56 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.3.1</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.basedir}/email</outputDirectory>
+							<resources>
+								<!-- Copy config -->
+								<resource>
+									<directory>${project.basedir}/config</directory>
+									<targetPath>config</targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+								<!-- Copy config -->
+								<resource>
+									<directory>${project.basedir}/jdk-17</directory>
+									<targetPath>jdk-17</targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+								<!-- Copy run.bat -->
+								<resource>
+									<directory>${project.basedir}</directory>
+									<includes>
+										<include>run.bat</include>
+									</includes>
+								</resource>
+
+								<!-- Copy the JAR file -->
+								<resource>
+									<directory>${project.build.directory}</directory>
+									<includes>
+										<include>${project.build.finalName}.jar</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 		<finalName>emailSchedular</finalName>
 	</build>

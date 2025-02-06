@@ -3,6 +3,7 @@ package com.project.emailSchedular.service;
 import com.project.emailSchedular.config.EmailFields;
 import com.project.emailSchedular.response.MailResponse;
 import com.project.emailSchedular.response.SheetData;
+import com.project.emailSchedular.vo.EmailDetailsVO;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import jakarta.mail.MessagingException;
@@ -34,13 +35,14 @@ public class EmailService {
     private FreeMarkerConfigurer freemarkerConfigurer;
     @Autowired
     JavaMailSender sender;
-    @Value("${spring.mail.username}")
-    String fromEmail;
+
     @Value("${spring.mail.images.path}")
     String imagePath;
     @Value("${spring.mail.img.default}")
     String defaultImg;
 
+    @Autowired
+    EmailDetailsVO emailDetailsVO;
 
     @Autowired
     EmailFields fields;
@@ -80,15 +82,15 @@ public class EmailService {
             String bcc=(String) model.getCell().get(fields.getBcc().toUpperCase());
             if(StringUtils.isNotBlank(bcc)) {
                 String[] bccArr = bcc.split(",");
-                helper.setCc(bccArr);
+                helper.setBcc(bccArr);
             }
 
             helper.setText(emailBody, true);
             helper.setSubject((String) model.getCell().get(fields.getSubject().toUpperCase()));
             if(StringUtils.isBlank(fields.getFromName())) {
-                helper.setFrom(fromEmail);
+                helper.setFrom(emailDetailsVO.getFromEmail());
             }else{
-                helper.setFrom(fromEmail,fields.getFromName() );
+                helper.setFrom(emailDetailsVO.getFromEmail(),fields.getFromName() );
             }
 
             sender.send(message);

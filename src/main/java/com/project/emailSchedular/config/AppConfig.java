@@ -2,9 +2,11 @@ package com.project.emailSchedular.config;
 
 import com.project.emailSchedular.response.SheetData;
 import com.project.emailSchedular.service.ExcelService;
+import com.project.emailSchedular.vo.EmailDetailsVO;
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.TemplateLoader;
 import org.apache.poi.ss.usermodel.Cell;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +27,10 @@ import java.util.Properties;
 public class AppConfig {
     @Value("${spring.mail.templates.path}")
     private String mailTemplatesPath;
+
+    @Autowired
+    EmailDetailsVO emailDetailsVO;
+
     @Primary
     @Bean
     public FreeMarkerConfigurer freemarkerClassLoaderConfig() throws IOException {
@@ -47,12 +53,12 @@ public class AppConfig {
 
         mailSender.setUsername((String) mailDetails.get("EMAIL"));
         mailSender.setPassword((String) mailDetails.get("PASSWORD"));
-
-//        Properties props = mailSender.getJavaMailProperties();
-//        props.put("mail.transport.protocol", "smtp");
-//        props.put("mail.smtp.auth", "true");
-//        props.put("mail.smtp.starttls.enable", "true");
-//        props.put("mail.debug", "true");
+        emailDetailsVO.setFromEmail((String) mailDetails.get("EMAIL"));
+        Properties props = mailSender.getJavaMailProperties();
+        props.put("mail.transport.protocol", "smtp");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.debug", "true");
 
         return mailSender;
     }
