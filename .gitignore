@@ -30,3 +30,4 @@ target/
 
 email/jdk-17/
 jdk-17/
+.appmap.yml

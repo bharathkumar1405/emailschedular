@@ -9,11 +9,13 @@ import freemarker.template.TemplateException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -49,13 +51,13 @@ public class EmailService {
 
     Logger log= LoggerFactory.getLogger(EmailService.class);
     public List<SheetData.Rows> sendBirthdayEmail(List<SheetData.Rows> emailSending) {
-            for (SheetData.Rows row : emailSending) {
-                if(StringUtils.isBlank((String) row.getCell().get("STATUS"))) {
-                    log.info("sending Email to {}",row.getCell());
-                    MailResponse res = sendEmail(row);
-                    row.setMailResponse(res);
-                }
+        for (SheetData.Rows row : emailSending) {
+            if(StringUtils.isBlank((String) row.getCell().get("STATUS"))) {
+                log.info("sending Email to {}",row.getCell());
+                MailResponse res = sendEmail(row);
+                row.setMailResponse(res);
             }
+        }
         return emailSending;
     }
 
@@ -65,10 +67,10 @@ public class EmailService {
         MimeMessage message = sender.createMimeMessage();
         try {
             // set mediaType
-            MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
+            MimeMessageHelper helper = new MimeMessageHelper(message, true,
                     StandardCharsets.UTF_8.name());
             // add attachment
-            String emailBody = getEmailBodyContent(model,helper);
+
             String to=(String) model.getCell().get(fields.getEmail().toUpperCase());
             if(StringUtils.isNotBlank(to)) {
                 String[] toArr = to.split(",");
@@ -84,9 +86,13 @@ public class EmailService {
                 String[] bccArr = bcc.split(",");
                 helper.setBcc(bccArr);
             }
-
+            String emailBody = getEmailBodyContent(model);
             helper.setText(emailBody, true);
             helper.setSubject((String) model.getCell().get(fields.getSubject().toUpperCase()));
+            if(StringUtils.contains(emailBody,"imageContentCID")) {
+                File imageContent = (File) model.getCell().get("IMAGE");
+                helper.addInline("imageContentCID", imageContent);  // Add CID reference
+            }
             if(StringUtils.isBlank(fields.getFromName())) {
                 helper.setFrom(emailDetailsVO.getFromEmail());
             }else{
@@ -110,16 +116,16 @@ public class EmailService {
         return response;
     }
 
-    private String getEmailBodyContent(SheetData.Rows model, MimeMessageHelper helper) throws TemplateException, IOException, MessagingException {
+    private String getEmailBodyContent(SheetData.Rows model) throws TemplateException, IOException, MessagingException {
         String template = (String) model.getCell().get(fields.getTemplate().toUpperCase());
         String htmlContent = "";
         checkImagePresent(model);
         if(StringUtils.isNotBlank(template)){
             htmlContent = buildHtmlFromTemplate(model);
         }else {
-            String imageContent = (String) model.getCell().get("IMAGE");
-            if (StringUtils.isNotBlank(imageContent)) {
-                htmlContent = "<html><body><img src='"+imageContent+"'></body></html>";
+            File imageContent = (File) model.getCell().get("IMAGE");
+            if (ObjectUtils.isNotEmpty(imageContent)) {
+                htmlContent = "<html><body><img src='cid:imageContentCID' alt='logo'></body></html>";
             } else {
                 String textContent = (String) model.getCell().get("CONTENT");
                 if (StringUtils.isNotBlank(textContent)) {
@@ -159,9 +165,11 @@ public class EmailService {
         for (String extension : extensions) {
             File file = new File(filePath +"."+ extension.trim());
             if (file.exists()) {
-                byte[] fileContent = FileUtils.readFileToByteArray(file);
-                String encodedString = Base64.getEncoder().encodeToString(fileContent);
-                model.getCell().put("IMAGE", "data:image/"+extension.trim()+";base64," + encodedString);
+                // byte[] fileContent = FileUtils.readFileToByteArray(file);
+                // String encodedString = Base64.getEncoder().encodeToString(fileContent);
+                //  FileSystemResource image = new FileSystemResource(file);
+                model.getCell().put("IMAGE", file);
+
                 return true;  // Image found and processed
             }
         }
