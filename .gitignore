@@ -28,6 +28,6 @@ replay_pid*
 **/target/**
 target/
 
-email/jdk-17/
+users/jdk-17/
 jdk-17/
 .appmap.yml

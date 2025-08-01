@@ -1,0 +1,6 @@
+2025-06-12 16:27:09.078000+05:30 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "[*]EMAIL_CREDENTIAL"; expected "EXPLAIN, EXECUTE"; SQL statement:
+EMAIL_CREDENTIAL [42001-224]
+2025-06-12 16:27:33.163379+05:30 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "drop [*]users1"; expected "TABLE, INDEX, USER, SEQUENCE, CONSTANT, TRIGGER, MATERIALIZED, VIEW, ROLE, ALIAS, SCHEMA, ALL OBJECTS, DOMAIN, TYPE, AGGREGATE, SYNONYM"; SQL statement:
+drop users1 [42001-224]

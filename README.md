@@ -20,6 +20,6 @@ add the field in excel and in ftl to get the data in EMAIL
 
 
 
-add your email and password in application.properties file in config folder
-click on send on the portal to send email
+add your users and password in application.properties file in config folder
+click on send on the portal to send users
 

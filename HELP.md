@@ -9,7 +9,7 @@ For further reference, please consider the following sections:
 * [Spring Boot DevTools](https://docs.spring.io/spring-boot/docs/3.2.3/reference/htmlsingle/index.html#using.devtools)
 * [Spring Web](https://docs.spring.io/spring-boot/docs/3.2.3/reference/htmlsingle/index.html#web)
 * [Thymeleaf](https://docs.spring.io/spring-boot/docs/3.2.3/reference/htmlsingle/index.html#web.servlet.spring-mvc.template-engines)
-* [Java Mail Sender](https://docs.spring.io/spring-boot/docs/3.2.3/reference/htmlsingle/index.html#io.email)
+* [Java Mail Sender](https://docs.spring.io/spring-boot/docs/3.2.3/reference/htmlsingle/index.html#io.users)
 * [Quartz Scheduler](https://docs.spring.io/spring-boot/docs/3.2.3/reference/htmlsingle/index.html#io.quartz)
 * [Spring Cache Abstraction](https://docs.spring.io/spring-boot/docs/3.2.3/reference/htmlsingle/index.html#io.caching)
 * [Spring Boot Actuator](https://docs.spring.io/spring-boot/docs/3.2.3/reference/htmlsingle/index.html#actuator)
